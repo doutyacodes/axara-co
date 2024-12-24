@@ -25,6 +25,7 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale}>
       <Head>
+        <meta name="robots" content="noindex, nofollow"></meta>
         {/* Favicon and icons */}
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
