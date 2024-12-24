@@ -25,6 +25,7 @@ export default function MagicBox() {
           <TabsTrigger value="contest">Contest</TabsTrigger>
           <TabsTrigger value="community">Community</TabsTrigger>
           <TabsTrigger value="activity">Activities</TabsTrigger>
+          
         </TabsList>
         <TabsContent value="magicbox">
           <Search />
