@@ -1317,6 +1317,8 @@ export const CHALLENGES = mysqlTable("challenges", {
   image: varchar("image", { length: 255 }).default(null),
   entry_fee: int("entry_fee").default(0),
   age: int("age"),
+  contest: mysqlEnum("contest", ["no", "yes"]).notNull(),
+  pool_id:int("pool_id"),
   points: int("points"),
   entry_type: mysqlEnum("entry_type", ["nill", "points", "fee"]).default(
     "nill"
@@ -1380,6 +1382,7 @@ export const CHALLENGE_USER_QUIZ = mysqlTable("challenge_user_quiz", {
   child_id: int("child_id").references(() => CHILDREN.id),
   question_id: int("question_id").references(() => CHALLENGE_QUESTIONS.id),
   option_id: int("option_id").references(() => CHALLENGE_OPTIONS.id),
+  score: decimal("score", { precision: 5, scale: 2 }).notNull(), // Allows 999.99 max
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
@@ -1487,6 +1490,19 @@ export const PRIZE_POOL_DATA = mysqlTable("prize_pool_data", {
   rank_to: int("rank_to").notNull(),
   prize: int("prize").notNull(),
 });
+
+export const CHALLENGE_RANKS = mysqlTable("challenge_ranks", {
+  id: int("id").primaryKey().autoincrement(), // Unique identifier for the record
+  challenge_id: int("challenge_id").notNull().references(() => CHALLENGES.id), // Foreign key to challenges table
+  user_id: int("user_id").notNull().references(() => USER_DETAILS.id), // Foreign key to user details
+  child_id: int("child_id").notNull().references(() => CHILDREN.id), // Foreign key to children table
+  rank: int("rank").notNull(), // Rank achieved by the user-child pair
+  reward_type: mysqlEnum("reward_type", ["points", "cash"]).notNull(), // Indicates whether the reward is points or cash
+  reward_value: decimal("reward_value", { precision: 10, scale: 2 }).notNull(), // Reward value in points or cash
+  pool_id: int("pool_id").default(null).references(() => PRIZE_POOL.id), // Foreign key to prize pool table
+  created_at: timestamp("created_at").defaultNow(), // Timestamp for when the rank is recorded
+});
+
 
 export const ADULT_NEWS_GROUP = mysqlTable("adult_news_group", {
   id: int("id").primaryKey().autoincrement(),

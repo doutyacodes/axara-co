@@ -61,7 +61,7 @@ const LeaderChallenges = () => {
         {challengesData.length > 0 ? (
           challengesData.map((challenge, index) => (
             <Link
-              href={`/challenges/${challenge.slug}`}
+              href={`/leaderboard/${challenge.slug}`}
               key={challenge.id}
             >
               

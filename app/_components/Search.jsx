@@ -95,7 +95,7 @@ const Search = () => {
         childId: selectedChildId,
       });
       const news = response.data.news || [];
-      console.log("response", response.data);
+      // console.log("response", response.data);
       setNewsCategories(news);
       setPosts(response.data.posts);
       setUserQuiz(response.data.userQuiz);
@@ -688,7 +688,7 @@ const Search = () => {
 
       // Log the raw response text to understand what the server is sending
       // const responseText = await response.data; // Read response as text
-      console.log("response", response);
+      // console.log("response", response);
       // console.log("Raw response text:", responseText);
 
       // // Check if the response is empty or not JSON

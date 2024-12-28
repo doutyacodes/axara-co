@@ -19,7 +19,7 @@ function Results() {
           typeof window !== "undefined" ? localStorage.getItem("token") : null;
         const language = localStorage.getItem("language") || "en";
         const response = await GlobalApi.GetUserId(token, language,selectedChildId);
-        console.log("response.data",response.data.updatedResults[0])
+        // console.log("response.data",response.data.updatedResults[0])
         if (response.status === 200) {
           setResultData(response.data.updatedResults[0]);
         } else if (response.status === 202) {

@@ -27,7 +27,7 @@ const CommunityList = () => {
       const response = await GlobalApi.GetKidsPost({
         age: selectedAge,
       });
-      console.log("response", response.data);
+      // console.log("response", response.data);
       setPosts(response.data.data); // Updated to access posts directly from `data`
     } catch (error) {
       console.error("Error fetching posts:", error);

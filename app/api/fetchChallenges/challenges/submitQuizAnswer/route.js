@@ -59,6 +59,7 @@ export async function POST(req) {
       option_id: optionId,
       child_id: childId,
       user_id: userId,
+      score:((score || 0)).toFixed(5)
     });
 
     // Check if the selected option is the correct answer

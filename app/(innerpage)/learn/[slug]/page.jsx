@@ -27,7 +27,7 @@ export default function SubjectPage() {
 
       try {
         const response = await GlobalApi.GetLearnTopicsData({ slug,childId:selectedChildId });
-        console.log("response",response.data)
+        // console.log("response",response.data)
         setLearnData(response.data);
       } catch (error) {
         if (error.response?.status === 404 && error.response?.data?.error) { // Match 'error' key from backend

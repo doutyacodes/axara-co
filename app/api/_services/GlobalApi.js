@@ -222,6 +222,16 @@ const FetchChallengesCompleted = async (data) => {
   });
 };
 
+const FetchChallengesLeaderboard = async (data) => {
+  const token = localStorage.getItem("token"); // Adjust based on your auth token storage
+
+  return axios.post(`/api/fetchChallenges/leaderboard/challenge`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+    },
+  });
+};
+
 const FetchChallengesOne = async (data) => {
   const token = localStorage.getItem("token"); // Adjust based on your auth token storage
 
@@ -272,42 +282,38 @@ const FetchNews = async (data) => {
   });
 };
 
-const fetchNewsHome = async (token,data) => {
-
-  if(token)
-  {
+const fetchNewsHome = async (token, data) => {
+  if (token) {
     return axios.post(`/api/fetchNewsHome`, data, {
       headers: {
         Authorization: `Bearer ${token}`, // Include the token in the Authorization header
       },
     });
-  }else{
+  } else {
     return axios.post(`/api/fetchNewsHome`, data);
   }
 };
 
 const fetchOneNews = async (data) => {
-
-    return axios.post(`https://www.axaranews.com/api/fetchNews/news`, data);
- 
+  return axios.post(`https://www.axaranews.com/api/fetchNews/news`, data);
 };
 const fetchOneNews2 = async (data) => {
-
-    return axios.post(`https://www.axaranews.com/api/adult/fetchNews/news2`, data);
- 
+  return axios.post(
+    `https://www.axaranews.com/api/adult/fetchNews/news2`,
+    data
+  );
 };
 
 const ReportNews = async (data) => {
   const token = localStorage.getItem("token"); // Adjust based on your auth token storage
 
-  if(token)
-  {
+  if (token) {
     return axios.post(`/api/fetchNews/report`, data, {
       headers: {
         Authorization: `Bearer ${token}`, // Include the token in the Authorization header
       },
     });
-  }else{
+  } else {
     return axios.post(`/api/fetchNews/report`, data);
   }
 };
@@ -714,11 +720,12 @@ const GetDaysData = (token, childId) => {
   });
 };
 
-const GetFeedbacksData = (month, year, week, childId, token,) => {
+const GetFeedbacksData = (month, year, week, childId, token) => {
   return axios.get(`/api/learn/getFeedbackData/${childId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
-    },params: {
+    },
+    params: {
       month,
       year,
       week,
@@ -726,7 +733,7 @@ const GetFeedbacksData = (month, year, week, childId, token,) => {
   });
 };
 
-// Adult News 
+// Adult News
 
 // New function to fetch news
 const FetchNewsAdult = async (data) => {
@@ -807,5 +814,6 @@ export default {
   FetchLeaderboard,
   FetchNewsAdult,
   fetchOneNews2,
-  FetchChallengesCompleted
+  FetchChallengesCompleted,
+  FetchChallengesLeaderboard
 };

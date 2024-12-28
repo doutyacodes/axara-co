@@ -65,7 +65,7 @@ const RightSideBar = () => {
   if (!childrenData || childrenData.length === 0) {
     return <p></p>;
   }
-  console.log("selectedChild", selectedChild);
+  // console.log("selectedChild", selectedChild);
   return (
     <>
       {isAuthenticated && (pathname.includes("news") ||pathname.includes("search")) ? (

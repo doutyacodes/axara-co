@@ -183,7 +183,7 @@ function Page() {
       const resp = await GlobalApi.SaveCarrierQuizProgress(data, token, quizId);
 
       if (resp && resp.status === 201) {
-        console.log("Response");
+        // console.log("Response");
       } else {
         console.error("Failed to save progress. Status code:", resp.status);
         toast.error("There was a problem saving your progress. Please check your internet connection.");
