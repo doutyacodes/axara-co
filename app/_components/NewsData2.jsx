@@ -26,6 +26,58 @@ import Head from "next/head";
 import { GrFormView } from "react-icons/gr";
 import { useSwipeable } from "react-swipeable"; // Add this import at the top
 
+
+// Define viewpoint colors with both background and text variants
+const viewpointColors = {
+  0: { bg: "bg-indigo-600", text: "text-indigo-600" },
+  1: { bg: "bg-emerald-600", text: "text-emerald-600" },
+  2: { bg: "bg-purple-600", text: "text-purple-600" },
+  3: { bg: "bg-blue-600", text: "text-blue-600" },
+  4: { bg: "bg-teal-600", text: "text-teal-600" },
+  5: { bg: "bg-rose-600", text: "text-rose-600" },
+  6: { bg: "bg-cyan-600", text: "text-cyan-600" }
+};
+
+// const viewpointColors = {
+//   0: { bg: "bg-slate-600", text: "text-slate-600" },      // Deep slate
+//   1: { bg: "bg-stone-600", text: "text-stone-600" },      // Warm stone
+//   2: { bg: "bg-zinc-600", text: "text-zinc-600" },        // Cool zinc
+//   3: { bg: "bg-neutral-600", text: "text-neutral-600" },  // True neutral
+//   4: { bg: "bg-gray-600", text: "text-gray-600" },        // Classic gray
+//   5: { bg: "bg-lime-700", text: "text-lime-700" },        // Deep lime
+//   6: { bg: "bg-emerald-700", text: "text-emerald-700" }   // Deep emerald
+// };
+
+// const viewpointColors = {
+//   0: { bg: "bg-blue-700", text: "text-blue-700" },        // Deep blue
+//   1: { bg: "bg-slate-600", text: "text-slate-600" },      // Business slate
+//   2: { bg: "bg-zinc-700", text: "text-zinc-700" },        // Deep zinc
+//   3: { bg: "bg-cyan-700", text: "text-cyan-700" },        // Deep cyan
+//   4: { bg: "bg-emerald-700", text: "text-emerald-700" },  // Deep emerald
+//   5: { bg: "bg-stone-700", text: "text-stone-700" },      // Deep stone
+//   6: { bg: "bg-gray-700", text: "text-gray-700" }         // Deep gray
+// };
+
+// const viewpointColors = {
+//   0: { bg: "bg-teal-700", text: "text-teal-700" },        // Deep teal
+//   1: { bg: "bg-emerald-700", text: "text-emerald-700" },  // Deep emerald
+//   2: { bg: "bg-stone-600", text: "text-stone-600" },      // Earthy stone
+//   3: { bg: "bg-slate-700", text: "text-slate-700" },      // Deep slate
+//   4: { bg: "bg-zinc-600", text: "text-zinc-600" },        // Cool zinc
+//   5: { bg: "bg-gray-700", text: "text-gray-700" },        // Deep gray
+//   6: { bg: "bg-neutral-700", text: "text-neutral-700" }   // Deep neutral
+// };
+
+// const viewpointColors = {
+//   0: { bg: "bg-zinc-600", text: "text-zinc-600" },        // Cool zinc
+//   1: { bg: "bg-stone-700", text: "text-stone-700" },      // Deep stone
+//   2: { bg: "bg-slate-700", text: "text-slate-700" },      // Deep slate
+//   3: { bg: "bg-neutral-600", text: "text-neutral-600" },  // Medium neutral
+//   4: { bg: "bg-amber-700", text: "text-amber-700" },      // Deep amber
+//   5: { bg: "bg-gray-700", text: "text-gray-700" },        // Deep gray
+//   6: { bg: "bg-zinc-700", text: "text-zinc-700" }         // Deep zinc
+// };
+
 const truncateDescription = (description, length) =>
   description.length > length
     ? `${description.slice(0, length)}...`
@@ -72,6 +124,13 @@ const NewsData2 = ({
   const shareUrl = `https://www.axaranews.com/viewpoint/${article.id}`;
   const title = article.title;
   const isBelowMd = useMediaQuery({ query: "(max-width: 768px)" });
+  const [isPaused, setIsPaused] = useState(false);
+
+   // Get color variants for viewpoint based on index
+   const getViewpointColor = (index, type = 'bg') => {
+      const colorSet = viewpointColors[index % Object.keys(viewpointColors).length];
+      return type === 'bg' ? colorSet.bg : colorSet.text;
+    };
 
   // Set truncate length based on screen size
   const descriptionLength = isBelowMd ? 250 : 300; // Use 100 below `md`, otherwise 200
@@ -124,22 +183,35 @@ const NewsData2 = ({
         console.log(err); // Optional error toast
       });
   };
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % allArticles.length);
-    }, 5000);
+    let interval;
+    if (!isPaused) {
+      interval = setInterval(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % allArticles.length);
+      }, 5000);
+    }
     return () => clearInterval(interval);
-  }, [allArticles.length]);
+  }, [allArticles.length, isPaused]);
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentIndex((prevIndex) => (prevIndex + 1) % allArticles.length);
+  //   }, 5000);
+  //   return () => clearInterval(interval);
+  // }, [allArticles.length]);
 
   const handleDotClick = (index) => {
     setCurrentIndex(index);
   };
+
   const handlers = useSwipeable({
     onSwipedLeft: () => setCurrentIndex((prevIndex) => (prevIndex + 1) % allArticles.length), // Go to next article
     onSwipedRight: () => setCurrentIndex((prevIndex) => (prevIndex - 1 + allArticles.length) % allArticles.length), // Go to previous article
     preventDefaultTouchmoveEvent: true,
     trackMouse: true,
   });
+
   return (
     <>
       <Head>
@@ -179,6 +251,10 @@ const NewsData2 = ({
           size &&
             "max-w-7xl mx-auto w-full md:flex-row md:gap-6 max-md:min-h-[40vh] md:p-5"
         )}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
       >
         {/* Image with Date at the Top */}
         <p className="text-[10px] md:text-xs text-black text-nowrap font-medium bg-opacity-80 py-2 rounded-md">
@@ -217,11 +293,21 @@ const NewsData2 = ({
             <GrFormView size={18} />
             {allArticles[currentIndex]?.viewpoint || article.viewpoint} Viewpoint
           </span> */}
-          <span className="absolute top-2 left-2 text-white text-xs flex items-center font-medium bg-orange-500  px-2 py-1 rounded-md">
+          {/* <span className="absolute top-2 left-2 text-white text-xs flex items-center font-medium bg-orange-500  px-2 py-1 rounded-md">
             <GrFormView size={18} />
             {allArticles[currentIndex]?.viewpoint || article.viewpoint}{" "}
             Viewpoint
+          </span> */}
+
+          {/* Viewpoint label above image - with background color */}
+          <span className={cn(
+            "absolute top-2 left-2 text-white text-xs flex items-center font-medium px-2 py-1 rounded-md",
+            getViewpointColor(currentIndex, 'bg')
+          )}>
+            <GrFormView size={18} />
+            {allArticles[currentIndex]?.viewpoint || article.viewpoint} Viewpoint
           </span>
+
           <span className="absolute bottom-2 left-2 flex gap-[3px] items-center ">
             {categoriesList(article.categoryNames)}
           </span>
@@ -241,19 +327,40 @@ const NewsData2 = ({
             )}
           >
             {/* Title */}
-            <motion.div
+            {/* <motion.div
               key={currentIndex}
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.5 }}
               className="scrollable-container"
+            > */}
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              transition={{ 
+                duration: 0.5,
+                type: "spring",
+                stiffness: 100,
+                damping: 15
+              }}
+              className="scrollable-container"
             >
-              <span className=" text-xs flex items-center font-semibold text-orange-500 ">
+              {/* <span className=" text-xs flex items-center font-semibold text-orange-500 ">
                 <GrFormView size={18} />
                 {allArticles[currentIndex]?.viewpoint || article.viewpoint}{" "}
                 Viewpoint
+              </span> */}
+              <span className={cn(
+                "text-xs flex items-center font-semibold",
+                getViewpointColor(currentIndex, 'text')
+              )}>
+                <GrFormView size={18} className={getViewpointColor(currentIndex, 'text')} />
+                {allArticles[currentIndex]?.viewpoint || article.viewpoint} Viewpoint
               </span>
+              
               <h3
                 // onClick={() => {
                 //   setShowId(article.id);
