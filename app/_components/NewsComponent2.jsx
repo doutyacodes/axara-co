@@ -130,20 +130,20 @@ export default function NewsDetails2({ id, showNames }) {
   const shareUrl = `https://www.axaranews.com/viewpoint/${id}`;
 
   return (
-    <div className="text-gray-800 p-2 pb-8 grid grid-cols-2 gap-2 md:gap-5 max-md:grid-cols-1">
+    <div className="text-gray-800 p-4 pb-8 grid grid-cols-2 gap-2 md:gap-5 max-md:grid-cols-1 bg-white shadow-md rounded-md border border-slate-200">
       <div className="w-full">
         {/* Viewpoints Header */}
         <p className="mb-3 font-semibold text-lg md:text-xl">
-        View this news from the viewpoint of:
+          View this news from the perspective of:{" "}
         </p>
 
         {/* Viewpoints Toggle with Horizontal Scroll */}
-        <div className="relative overflow-x-auto flex gap-2 scrollbar-hide mb-4 p-2">
+        <div className="relative overflow-x-auto flex  scrollbar-hide mb-4 p-2">
           {allArticles.map((articleItem, index) => (
             <motion.button
               key={index}
               onClick={() => handleViewpointChange(index)}
-              className={` px-4 py-2 rounded-full text-nowrap text-sm md:text-base ${
+              className={` px-4 py-2 border-[0.5px] border-slate-100 text-nowrap text-sm md:text-base ${
                 index === currentArticleIndex
                   ? "bg-orange-500 text-white shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -156,7 +156,9 @@ export default function NewsDetails2({ id, showNames }) {
           ))}
         </div>
         <div className="mb-6">
-          <h1 className="text-4xl max-md:text-3xl font-bold text-gray-800">{title}</h1>
+          <h1 className="text-4xl max-md:text-3xl font-bold text-gray-800">
+            {title}
+          </h1>
           <p className="text-sm text-gray-500 mt-2">{date}</p>
         </div>
         <div className="mb-3 flex gap-2">{categoriesList()}</div>

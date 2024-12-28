@@ -1474,6 +1474,20 @@ export const CHALLENGES_MAIN = mysqlTable("challenges_main", {
   language_id: int("language_id").notNull(),
 });
 
+export const PRIZE_POOL = mysqlTable("prize_pool", {
+  id: int("id").primaryKey().autoincrement(),
+  pool_prize: int("pool_prize").notNull(),
+});
+
+// Prize Pool Data Table Schema
+export const PRIZE_POOL_DATA = mysqlTable("prize_pool_data", {
+  id: int("id").primaryKey().autoincrement(),
+  pool_id: int("pool_id").notNull().references(() => PRIZE_POOL.id), // Foreign key to prize_pool
+  rank_from: int("rank_from").notNull(),
+  rank_to: int("rank_to").notNull(),
+  prize: int("prize").notNull(),
+});
+
 export const ADULT_NEWS_GROUP = mysqlTable("adult_news_group", {
   id: int("id").primaryKey().autoincrement(),
   show_on_top: boolean("show_on_top").default(false),

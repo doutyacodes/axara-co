@@ -34,33 +34,38 @@ export default function NewsSection() {
         newsTopGroupedByGroupId = [],
         newsGroupedByGroupId = [],
       } = response.data;
-      // console.log("response.data", response.data.newsGroupedByGroupId);
+
       // Set categories
       const allCategory = { id: "all", name: "All" };
       setNewsCategories([allCategory, ...categories]);
 
-      // Process top news: Ensure descending order within each group
+      // Process top news: Include both the first article and the full array
       const topNewsMap = newsTopGroupedByGroupId.reduce((acc, group) => {
         const sortedNewsItems = [...group.newsItems].sort(
           (a, b) => new Date(a.id) - new Date(b.id)
         ); // Sort by id descending
-        acc[group.news_group_id] = sortedNewsItems[0]; // First item only
+        acc[group.news_group_id] = {
+          topArticle: sortedNewsItems[0], // The top article
+          allArticles: sortedNewsItems,  // The full array of articles
+        };
         return acc;
       }, {});
 
       setNewsTop(topNewsMap);
 
-      // Process normal news: Ensure descending order within each group
+      // Process normal news: Include both the main article and the full array
       const normalNewsMap = newsGroupedByGroupId.reduce((acc, group) => {
         const sortedNewsItems = [...group.newsItems].sort(
           (a, b) => new Date(a.id) - new Date(b.id)
         ); // Sort by id descending
-        acc[group.news_group_id] = sortedNewsItems[0]; // First item only
+        acc[group.news_group_id] = {
+          mainArticle: sortedNewsItems[0], // The main article
+          allArticles: sortedNewsItems,   // The full array of articles
+        };
         return acc;
       }, {});
 
       setNewsByCategory(normalNewsMap);
-
       setSelectedCategory("All"); // Default to "All" category
     } catch (error) {
       console.error("Error fetching news:", error);
@@ -76,37 +81,33 @@ export default function NewsSection() {
   // Get news by selected category
   const currentCategoryNews =
     selectedCategory === "All"
-      ? Object.values(newsByCategory) // Display all news if "All" is selected
-      : Object.entries(newsByCategory)
-          .filter(([groupId, article]) =>
-            article.categoryNames?.split(",").includes(selectedCategory)
-          )
-          .map(([, article]) => article);
+      ? Object.values(newsByCategory)
+      : Object.values(newsByCategory).filter(({ mainArticle }) =>
+          mainArticle.categoryNames?.split(",").includes(selectedCategory)
+        );
 
   // Sort by created_at in descending order
   const sortedCategoryNews = currentCategoryNews.sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    (a, b) => new Date(b.mainArticle.created_at) - new Date(a.mainArticle.created_at)
   );
 
   const currentTopNews =
     selectedCategory === "All"
       ? Object.values(newsTop)
-      : Object.entries(newsTop)
-          .filter(([groupId, article]) =>
-            article.categoryNames?.split(",").includes(selectedCategory)
-          )
-          .map(([, article]) => article);
+      : Object.values(newsTop).filter(({ topArticle }) =>
+          topArticle.categoryNames?.split(",").includes(selectedCategory)
+        );
 
   // Sort by created_at in descending order
   const sortedTopNews = currentTopNews.sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    (a, b) => new Date(b.topArticle.created_at) - new Date(a.topArticle.created_at)
   );
 
   // Filtered news by search query
   const filteredNews = sortedCategoryNews.filter(
-    (article) =>
-      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    ({ mainArticle }) =>
+      mainArticle.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mainArticle.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (isLoading) {
@@ -177,19 +178,17 @@ export default function NewsSection() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
-          {sortedTopNews.map((article) => {
-            console.log("article", article);
-            return (
-              <NewsData2
-                article={article}
-                setShowId={setShowId}
-                setShowNames={setShowNames}
-                setShowNews={setShowNews}
-                key={article.id}
-                size={true}
-              />
-            );
-          })}
+          {sortedTopNews.map(({ topArticle, allArticles }) => (
+            <NewsData2
+              article={topArticle}
+              allArticles={allArticles}
+              setShowId={setShowId}
+              setShowNames={setShowNames}
+              setShowNews={setShowNews}
+              key={topArticle.id}
+              size={true}
+            />
+          ))}
         </motion.div>
       )}
 
@@ -205,13 +204,14 @@ export default function NewsSection() {
           transition={{ duration: 0.8 }}
         >
           {filteredNews.length > 0 ? (
-            filteredNews.map((article) => (
+            filteredNews.map(({ mainArticle, allArticles }) => (
               <NewsData2
-                article={article}
+                article={mainArticle}
+                allArticles={allArticles}
                 setShowId={setShowId}
                 setShowNames={setShowNames}
                 setShowNews={setShowNews}
-                key={article.id}
+                key={mainArticle.id}
               />
             ))
           ) : (

@@ -59,6 +59,7 @@
     "react-leaflet": "^4.2.1",
     "react-responsive": "^10.0.0",
     "react-share": "^5.1.1",
+    "react-swipeable": "^7.0.2",
     "recorder-js": "^1.0.7",
     "ssh2-sftp-client": "^11.0.0",
     "swiper": "^11.1.14",

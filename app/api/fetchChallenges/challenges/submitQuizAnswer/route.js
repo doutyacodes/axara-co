@@ -35,6 +35,7 @@ export async function POST(req) {
       childId,
       isCompleted,
       isFirstQuestion,
+      score
     } = await req.json();
 
     if (
@@ -92,7 +93,9 @@ export async function POST(req) {
         // Update the score by incrementing it
         await db
           .update(QUIZ_SCORE)
-          .set({ score: parseFloat(existingScore[0].score) + 1 })
+          .set({ score: parseFloat(
+            (parseFloat(existingScore[0].score) + (score || 0)).toFixed(5) // Ensure 5 decimal places
+          ), })
           .where(eq(QUIZ_SCORE.id, existingScore[0].id));
       } else {
         // Insert a new score record
@@ -100,7 +103,7 @@ export async function POST(req) {
           user_id: userId,
           child_id: childId,
           challenge_id: challengeId,
-          score: 1, // Start with a score of 1 for the first correct answer
+          score: score.toFixed(5)||0, // Start with a score of 1 for the first correct answer
         });
       }
     }

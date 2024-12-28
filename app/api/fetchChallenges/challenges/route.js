@@ -111,6 +111,7 @@ export async function POST(req) {
         .select({
           id: CHALLENGE_QUESTIONS.id,
           question: CHALLENGE_QUESTIONS.question,
+          timer:CHALLENGE_QUESTIONS.timer
         })
         .from(CHALLENGE_QUESTIONS)
         .where(eq(CHALLENGE_QUESTIONS.challenge_id, challengeData.id));

@@ -6,8 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useChildren } from "@/context/CreateContext";
 import toast from "react-hot-toast";
 import GlobalApi from "@/app/api/_services/GlobalApi";
-import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import { cn } from "@/lib/utils";
+import LoadingSpinner from "@/app/_components/LoadingSpinner";
 
 const QuizSection = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,11 +18,17 @@ const QuizSection = () => {
   const [answers, setAnswers] = useState({});
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
   const [challengeCompleted, setChallengeCompleted] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(0); // Timer in milliseconds
+  const [marks, setMarks] = useState(0);
+  const [isAnswerSelected, setIsAnswerSelected] = useState(false);
 
   const router = useRouter();
   const params = useParams();
   const { slug } = params;
-  const { selectedChildId, selectedAge } = useChildren();
+  const { selectedChildId } = useChildren();
+
+  const totalMarks = 1000; // Total points per question
+  const interval = 50; // Timer update interval in ms
 
   // Fetch challenge and quiz details
   const fetchChallengeDetails = async () => {
@@ -36,6 +42,10 @@ const QuizSection = () => {
       const { challenge, remainingQuestions } = response.data;
       setChallenge(challenge);
       setQuizQuestions(remainingQuestions);
+
+      if (remainingQuestions.length > 0) {
+        setTimeRemaining(remainingQuestions[0].timer * 1000); // Set initial timer
+      }
 
       if (challenge.isCompleted) {
         setChallengeCompleted(true);
@@ -52,16 +62,42 @@ const QuizSection = () => {
     fetchChallengeDetails();
   }, [selectedChildId]);
 
+  // Timer logic
+  useEffect(() => {
+    if (!isAnswerSelected && timeRemaining > 0) {
+      const timer = setInterval(() => {
+        setTimeRemaining((prev) => prev - interval);
+      }, interval);
+
+      return () => clearInterval(timer);
+    }
+
+    if (timeRemaining <= 0) {
+      handleFinalSubmit(0); // Submit with zero marks if time runs out
+    }
+  }, [timeRemaining, isAnswerSelected]);
+
+  // Calculate marks based on remaining time
+  const calculateMarks = (timer) => {
+    const remainingSeconds = timeRemaining / 1000; // Convert ms to seconds
+    return (remainingSeconds / timer) * totalMarks;
+  };
+
   // Handle option selection
   const handleOptionSelect = (optionId) => {
+    if (isAnswerSelected) return; // Prevent multiple selections
     setAnswers((prev) => ({
       ...prev,
       [quizQuestions[currentQuestionIndex].id]: optionId,
     }));
+    const currentQuestion = quizQuestions[currentQuestionIndex];
+
+    setMarks(calculateMarks(currentQuestion.timer));
+    setIsAnswerSelected(true);
   };
 
   // Submit current answer
-  const handleFinalSubmit = async () => {
+  const handleFinalSubmit = async (score = marks) => {
     try {
       setQuiz_loading(true);
       const currentQuestion = quizQuestions[currentQuestionIndex];
@@ -73,9 +109,11 @@ const QuizSection = () => {
         questionId: currentQuestion.id,
         optionId: answers[currentQuestion.id],
         childId: selectedChildId,
+        score: isAnswerSelected ? score : 0,
         isCompleted: isLastQuestion,
         isFirstQuestion: isFirstQuestion,
       });
+
 
       if (response.data.success) {
         toast.success("Answer submitted successfully.");
@@ -84,6 +122,10 @@ const QuizSection = () => {
           router.push("/challenges");
         } else {
           setCurrentQuestionIndex((prev) => prev + 1);
+          setTimeRemaining(
+            quizQuestions[currentQuestionIndex + 1]?.timer * 1000
+          ); // Reset timer for next question
+          setIsAnswerSelected(false); // Reset answer selection
         }
       }
     } catch (error) {
@@ -102,23 +144,41 @@ const QuizSection = () => {
 
       {isLoading && <LoadingSpinner />}
 
-      {challengeCompleted && (
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-green-600">
-            Challenge Completed!
-          </h2>
-          <motion.button
-            className="mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg"
-            onClick={() => router.push("/challenges")}
-          >
-            Go to Challenges
-          </motion.button>
-        </div>
-      )}
-
       {!challengeCompleted && !isQuizCompleted && !isLoading && (
         <div className="p-4 bg-white shadow-md rounded-lg">
-          <h2 className="text-xl font-semibold">
+          <div className="relative w-24 h-24 mx-auto">
+            <svg className="absolute top-0 left-0 w-full h-full">
+              <circle
+                cx="50%"
+                cy="50%"
+                r="45%"
+                stroke="gray"
+                strokeWidth="5"
+                fill="none"
+              />
+              <circle
+                cx="50%"
+                cy="50%"
+                r="45%"
+                stroke="orange"
+                strokeWidth="5"
+                fill="none"
+                strokeDasharray="283"
+                strokeDashoffset={
+                  ((timeRemaining /
+                    (quizQuestions[currentQuestionIndex]?.timer * 1000)) *
+                    283) ||
+                  283
+                }
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center text-2xl font-bold">
+              {Math.ceil(timeRemaining / 1000)}
+            </div>
+          </div>
+
+          <h2 className="text-xl font-semibold mt-8">
             {quizQuestions[currentQuestionIndex]?.question}
           </h2>
           <div className="mt-4 grid grid-cols-12 gap-3">
@@ -137,9 +197,12 @@ const QuizSection = () => {
             ))}
           </div>
           <motion.button
-            onClick={handleFinalSubmit}
+            onClick={() => handleFinalSubmit()}
             disabled={quiz_loading}
-            className={cn("mt-8 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg",quiz_loading &&"bg-opacity-50")}
+            className={cn(
+              "mt-8 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg",
+              quiz_loading && "bg-opacity-50"
+            )}
           >
             {quiz_loading
               ? "Submitting..."
@@ -148,22 +211,6 @@ const QuizSection = () => {
               : "Next Question"}
           </motion.button>
         </div>
-      )}
-
-      {isQuizCompleted && (
-        <motion.div className="fixed inset-0 bg-gray-700 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h2 className="text-2xl font-bold text-green-600">
-              Quiz Completed!
-            </h2>
-            <motion.button
-              onClick={() => router.push("/challenges")}
-              className="mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg"
-            >
-              Go to Challenges
-            </motion.button>
-          </div>
-        </motion.div>
       )}
     </div>
   );

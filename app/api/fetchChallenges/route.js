@@ -5,6 +5,7 @@ import { authenticate } from "@/lib/jwtMiddleware";
 import { and, eq, notIn, isNull, or, lt } from "drizzle-orm"; // Added `isNull` and `lt` for date comparison
 
 export async function POST(req) {
+  console.log(req)
   const authResult = await authenticate(req);
   if (!authResult.authenticated) {
     return authResult.response;

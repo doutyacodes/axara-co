@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import moment from "moment";
 import Image from "next/image";
@@ -23,15 +23,18 @@ import { useMediaQuery } from "react-responsive";
 import Link from "next/link";
 import { DateTime } from "luxon";
 import Head from "next/head";
+import { GrFormView } from "react-icons/gr";
+import { useSwipeable } from "react-swipeable"; // Add this import at the top
+
 const truncateDescription = (description, length) =>
   description.length > length
     ? `${description.slice(0, length)}...`
     : description;
 
-const formatDate = (date) => {
-  const inputDate = moment(date);
-  return inputDate.fromNow();
-};
+// const formatDate = (date) => {
+//   const inputDate = moment(date);
+//   return inputDate.fromNow();
+// };
 
 const formatDate2 = (date, regionId) => {
   // Determine the timezone based on regionId
@@ -58,13 +61,14 @@ const NewsData2 = ({
   setShowNames,
   size = false,
   regionId,
+  allArticles,
 }) => {
   const [showReportPopup, setShowReportPopup] = useState(false);
   const [report_text, setReport_text] = useState("");
   const router = useRouter();
-  // console.log("article", article);
+  console.log("allArticles", allArticles);
   const { selectedRegion } = useChildren();
-
+  const [currentIndex, setCurrentIndex] = useState(0); // State to track the title index
   const shareUrl = `https://www.axaranews.com/viewpoint/${article.id}`;
   const title = article.title;
   const isBelowMd = useMediaQuery({ query: "(max-width: 768px)" });
@@ -100,25 +104,7 @@ const NewsData2 = ({
         {result.map((item, index) => (
           <div
             key={index} // Always add a unique key when rendering lists
-            className="  text-[7.9px] text-white text-xs font-medium bg-orange-500 bg-opacity-80 px-2 py-[2px] rounded-md"
-          >
-            {item.trim()} {/* Remove extra spaces */}
-          </div>
-        ))}
-      </>
-    );
-  };
-  const viewpointsList = (data) => {
-    if (!data) return null; // Handle cases where data is null or undefined
-    const categoryNames = data;
-    const result = categoryNames.split(",");
-
-    return (
-      <>
-        {result.map((item, index) => (
-          <div
-            key={index} // Always add a unique key when rendering lists
-            className="  text-[7.9px] md:text-xs text-black text-nowrap font-medium  bg-opacity-80  rounded-md"
+            className="  text-[7.9px] text-white text-xs font-medium bg-black/60  px-2 py-[2px] rounded-md"
           >
             {item.trim()} {/* Remove extra spaces */}
           </div>
@@ -138,9 +124,25 @@ const NewsData2 = ({
         console.log(err); // Optional error toast
       });
   };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % allArticles.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [allArticles.length]);
+
+  const handleDotClick = (index) => {
+    setCurrentIndex(index);
+  };
+  const handlers = useSwipeable({
+    onSwipedLeft: () => setCurrentIndex((prevIndex) => (prevIndex + 1) % allArticles.length), // Go to next article
+    onSwipedRight: () => setCurrentIndex((prevIndex) => (prevIndex - 1 + allArticles.length) % allArticles.length), // Go to previous article
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true,
+  });
   return (
     <>
-    <Head>
+      <Head>
         {/* Essential Meta Tags */}
         <title>{article.title}</title>
         <meta name="description" content={article.description} />
@@ -148,7 +150,10 @@ const NewsData2 = ({
         {/* OpenGraph Meta Tags */}
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.description} />
-        <meta property="og:image" content={`https://wowfy.in/testusr/images/${article.image_url}`} />
+        <meta
+          property="og:image"
+          content={`https://wowfy.in/testusr/images/${article.image_url}`}
+        />
         <meta property="og:url" content={shareUrl} />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="Axara News" />
@@ -157,13 +162,17 @@ const NewsData2 = ({
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title} />
         <meta name="twitter:description" content={article.description} />
-        <meta name="twitter:image" content={`https://wowfy.in/testusr/images/${article.image_url}`} />
+        <meta
+          name="twitter:image"
+          content={`https://wowfy.in/testusr/images/${article.image_url}`}
+        />
 
         {/* WhatsApp Preview Tags */}
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-    </Head>
+      </Head>
       <div
+      {...handlers} 
         //   whileTap={{ scale: 0.95 }}
         className={cn(
           "bg-[#f5f5f5] shadow-md cursor-pointer rounded-lg overflow-hidden hover:shadow-lg transition-shadow flex flex-col p-1 ",
@@ -174,10 +183,10 @@ const NewsData2 = ({
         {/* Image with Date at the Top */}
         <p className="text-[10px] md:text-xs text-black text-nowrap font-medium bg-opacity-80 py-2 rounded-md">
           <span className="flex gap-[3px] items-center overflow-x-auto w-full">
-          <span className="font-bold"> Perspectives of </span>: {article.viewpoints.replace(/,/g, ', ')}
+            <span className="font-bold"> Perspectives of </span>:{" "}
+            {article.viewpoints.replace(/,/g, ", ")}
           </span>
         </p>
-
 
         <div
           className={cn(
@@ -204,8 +213,14 @@ const NewsData2 = ({
             }}
           />
           {/* Date at the top */}
-          <span className="absolute top-2 left-2 text-white text-xs font-medium bg-black bg-opacity-60 px-2 py-1 rounded-md">
-            {formatDate(article.created_at)}
+          {/* <span className="absolute top-2 left-2 text-white text-xs flex items-center font-medium bg-black bg-opacity-60 px-2 py-1 rounded-md">
+            <GrFormView size={18} />
+            {allArticles[currentIndex]?.viewpoint || article.viewpoint} Viewpoint
+          </span> */}
+          <span className="absolute top-2 left-2 text-white text-xs flex items-center font-medium bg-orange-500  px-2 py-1 rounded-md">
+            <GrFormView size={18} />
+            {allArticles[currentIndex]?.viewpoint || article.viewpoint}{" "}
+            Viewpoint
           </span>
           <span className="absolute bottom-2 left-2 flex gap-[3px] items-center ">
             {categoriesList(article.categoryNames)}
@@ -216,28 +231,60 @@ const NewsData2 = ({
             </span>
           )}
         </div>
+
         <div className={cn("", size && "md:w-2/4 ")}>
           {/* Content Area */}
           <div
-            className={cn("flex flex-col flex-grow", !size ? " p-2" : "md:mb-3")}
+            className={cn(
+              "flex flex-col flex-grow",
+              !size ? " p-2" : "md:mb-3"
+            )}
           >
             {/* Title */}
-            <h3
-              // onClick={() => {
-              //   setShowId(article.id);
-              //   setShowNames(article.categoryNames);
-              //   setShowNews(true);
-              // }}
-              onClick={() => {
-                router.push(`viewpoint/${article.id}`);
-              }}
-              className={cn(
-                "text-lg font-medium text-gray-800 mb-2 cursor-pointer",
-                size && "md:text-xl"
-              )}
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.5 }}
+              className="scrollable-container"
             >
-              {truncateTitle(article.title)}
-            </h3>
+              <span className=" text-xs flex items-center font-semibold text-orange-500 ">
+                <GrFormView size={18} />
+                {allArticles[currentIndex]?.viewpoint || article.viewpoint}{" "}
+                Viewpoint
+              </span>
+              <h3
+                // onClick={() => {
+                //   setShowId(article.id);
+                //   setShowNames(article.categoryNames);
+                //   setShowNews(true);
+                // }}
+                onClick={() => {
+                  router.push(`/viewpoint/${article.id}`);
+                }}
+                className={cn(
+                  "text-lg font-medium text-gray-800 mb-2 cursor-pointer line-clamp-3",
+                  size && "md:text-xl"
+                )}
+              >
+                {allArticles[currentIndex]?.title || article.title}
+              </h3>
+            </motion.div>
+            <div className="flex justify-center my-1 space-x-2">
+              {allArticles.map((_, index) => (
+                <button
+                  key={index}
+                  className={cn(
+                    "w-2 h-2 rounded-full transition",
+                    currentIndex === index
+                      ? "bg-orange-500"
+                      : "bg-gray-400 hover:bg-gray-600"
+                  )}
+                  onClick={() => handleDotClick(index)}
+                />
+              ))}
+            </div>
 
             {/* Footer with Share and Report Options */}
             <div className="flex flex-row-reverse justify-between items-center mt-auto">
@@ -340,8 +387,8 @@ const NewsData2 = ({
                   Are you sure you want to report this?
                 </p>
                 <p className="text-gray-500 text-sm text-center">
-                  Reporting will send this content for review. This action cannot
-                  be undone.
+                  Reporting will send this content for review. This action
+                  cannot be undone.
                 </p>
 
                 {/* Optional Textarea */}
